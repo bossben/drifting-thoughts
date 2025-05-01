@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drifting Thoughts</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: radial-gradient(ellipse at bottom, #0d1b2a 0%, #000000 100%);
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      position: relative;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+    }
+
+    #inputContainer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+    }
+
+    #thoughtInput {
+      padding: 12px 20px;
+      font-size: 18px;
+      width: 340px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid #aaa;
+      border-radius: 10px;
+      backdrop-filter: blur(5px);
+      outline: none;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+      position: relative;
+      z-index: 2;
+    }
+
+    .drifting {
+      position: absolute;
+      font-size: 18px;
+      color: #aeefff;
+      text-shadow: 0 0 5px #aeefff, 0 0 10px #00ffff;
+      white-space: nowrap;
+      opacity: 1;
+      animation: drift 5s ease-out forwards;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    @keyframes drift {
+      to {
+        transform: translate(var(--x), var(--y));
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="starCanvas"></canvas>
+
+  <div id="inputContainer">
+    <input type="text" id="thoughtInput" placeholder="Type your thought and press Enter..." />
+  </div>
+
+  <script>
+    const input = document.getElementById('thoughtInput');
+
+    input.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' && input.value.trim() !== '') {
+        createDriftingTextFromInput(input);
+        input.value = '';
+      }
+    });
+
+    function createDriftingTextFromInput(inputEl) {
+      const rect = inputEl.getBoundingClientRect();
+
+      const span = document.createElement('span');
+      span.className = 'drifting';
+      span.textContent = inputEl.value;
+
+      span.style.left = `${rect.left + 22}px`;
+      span.style.top = `${rect.top + rect.height / 2 - 12}px`;
+
+      const dx = (Math.random() - 0.5) * 1200 + 'px';
+      const dy = (Math.random() - 0.5) * 1200 + 'px';
+      span.style.setProperty('--x', dx);
+      span.style.setProperty('--y', dy);
+
+      document.body.appendChild(span);
+      span.addEventListener('animationend', () => span.remove());
+    }
+
+    // STARFIELD CANVAS
+    const canvas = document.getElementById('starCanvas');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    const numStars = 300;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function initStars() {
+      stars = [];
+      for (let i = 0; i < numStars; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 1.5,
+          alpha: Math.random(),
+          delta: Math.random() * 0.02
+        });
+      }
+    }
+
+    function drawStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let star of stars) {
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius, 0, 2 * Math.PI);
+        ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+        ctx.fill();
+
+        star.alpha += star.delta;
+        if (star.alpha <= 0 || star.alpha >= 1) {
+          star.delta = -star.delta;
+        }
+      }
+    }
+
+    function animateStars() {
+      drawStars();
+      requestAnimationFrame(animateStars);
+    }
+
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      initStars();
+    });
+
+    resizeCanvas();
+    initStars();
+    animateStars();
+  </script>
+</body>
+</html>
